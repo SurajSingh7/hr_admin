@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import { Row, Col, Form, Input, Button, Modal } from "antd";
 import toast from 'react-hot-toast';
+import API_BASE_URL from '../../../../../config/config';
 
 export default function Home() {
   const { register, handleSubmit, reset } = useForm();
@@ -28,7 +29,7 @@ export default function Home() {
 
       console.log('FormData being sent:', formData); // Log the formData to ensure it's correct
 
-      await axios.post(`NEXT_PUBLIC_API_BASE_URL/hrms/document`, formData);
+      await axios.post(`${API_BASE_URL}/hrms/document`, formData);
       toast.success('Employee data saved successfully!');
       
       reset();
