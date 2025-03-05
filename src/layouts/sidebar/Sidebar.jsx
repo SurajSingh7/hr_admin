@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from "react";
 import { Layout, Menu, Button, theme } from "antd";
-import { UploadOutlined, ShopOutlined,FormOutlined, ShoppingCartOutlined,ReconciliationOutlined, ThunderboltOutlined,TagOutlined, UserOutlined, DashboardOutlined,MoneyCollectOutlined,StockOutlined  } from "@ant-design/icons";
+import { UploadOutlined, ShopOutlined,FormOutlined, ShoppingCartOutlined,ReconciliationOutlined, ThunderboltOutlined,TagOutlined, UserOutlined, DashboardOutlined,MoneyCollectOutlined,StockOutlined,HomeFilled  } from "@ant-design/icons";
 import Link from "next/link";// Assuming you are using React Router
 // import './slidebar.css'
 
@@ -104,8 +104,8 @@ const Sidebar = ({ status , func}) => {
 
   {/* </SubMenu> */}
 
-    <Menu.Item key="11" icon={<UserOutlined />}>
-      <Link href="/employee/dashboard" style={{color: "white"}}>Employee Dashboard</Link>
+    <Menu.Item key="11" icon={<HomeFilled/>}>
+      <Link href="https://portal.gtel.in/" style={{color: "white"}}>Portal</Link>
     </Menu.Item>
     
    </Menu>

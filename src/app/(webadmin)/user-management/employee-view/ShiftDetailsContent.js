@@ -14,7 +14,7 @@ const ShiftDetailsContent = () => {
     setLoading(true); // Start loading
     setError(null); // Reset errors
     axios
-      .get("/api/shiftName") // Use the relative URL, which will be proxied via next.config.js
+      .get("https://roster.gtel.in/api/shiftName") // Use the relative URL, which will be proxied via next.config.js
       .then((response) => {
         if (response.data && Array.isArray(response.data)) {
           console.log("API Response Data:", response.data);

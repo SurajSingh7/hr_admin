@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Qr from "../../component/common/qr/WhatsAppConnect";
 import {
   Layout as AntLayout,
   Button,
@@ -37,10 +38,12 @@ import API_BASE_URL from "../../../config/config";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Toaster } from "react-hot-toast";
+
 // import SearchBar from "@/layouts/employeeHrms/Header/SearchBar";
 // import NotificationMailSettings from "@/layouts/employeeHrms/Header/NotificationMailSettings";
 // import Profile from "@/layouts/hrms/Header/Profile";
 import Profile from "./Profile";
+// import Qr from "./Qr";
 const { Text } = Typography;
 const { Header: AntHeader } = AntLayout;
 const { Option } = Select;
@@ -58,6 +61,7 @@ const Header = ({ heading, status, func }) => {
   const [allNotificationsVisible, setAllNotificationsVisible] = useState(false); // Define allNotificationsVisible state
   const [qrValue, setQrValue] = useState("");
   const [loadingQr, setLoadingQr] = useState(false);
+  const [qrstatus, setQrstatus] = useState(false);
 
 
   const handleLogout = async () => {
@@ -207,9 +211,12 @@ const Header = ({ heading, status, func }) => {
         if (response.ok) {
           const result = await response.json();
           const employeeData = result.data[0];
-          const { email, department, basicemployees, role } = employeeData;
+          const { email, department, basicemployees, role,departmentOfficialNumber } = employeeData;
+          console.log("employeeData", employeeData);
+
           setUserData({
             email,
+            departmentOfficialNumber,
             department: department?.name,
             role: role?.name,
             firstName: basicemployees?.firstName,
@@ -218,6 +225,7 @@ const Header = ({ heading, status, func }) => {
             profileImage:basicemployees?.profileImage,
             uploadFileInfo: basicemployees?.uploadFileInfo[0]?.path
           });
+          console.log("lin223 mobile number",userData);
         } else {
           setError("Failed to fetch data");
         }
@@ -451,7 +459,7 @@ const Header = ({ heading, status, func }) => {
           
 
           {/* Whatapps icon */}
-          <Popover
+          {/* <Popover
             title="Scan to Chat on WhatsApp"
             content={
               loadingQr ? (
@@ -494,8 +502,19 @@ const Header = ({ heading, status, func }) => {
                 <WhatsAppOutlined />
               </a>
             </div>
-          </Popover>
+          </Popover> */}
 
+          
+           {/* <Qr userData={userData}/> */}
+           {/* <Qr userData={userData} qrstatus={qrstatus} setQrstatus={setQrstatus}/> */}
+
+
+
+          
+           {/* <WhatsAppOutlined /> */}
+           <Qr userData={userData} qrstatus={qrstatus} setQrstatus={setQrstatus}/>
+          
+         
 
           {/* Profile */}
           <Profile userData={userData} profileMenuItems={profileMenuItems} />
@@ -531,7 +550,6 @@ const Header = ({ heading, status, func }) => {
 };
 
 export default Header;
-
 
 
 

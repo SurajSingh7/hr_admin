@@ -87,10 +87,10 @@ const MfaSetup = () => {
    
         if(result.isAdmin === true){
           // router.push("super-admin/company-master")
-          router.push("hrdepartment/staffregistration")
+          router.push("hrdepartment/staffview")
         }
         else{
-          router.push("hrdepartment/staffregistration");
+          router.push("hrdepartment/staffview");
         }
       } else {
         setMessage(result.message || "Invalid token. Please try again.");
