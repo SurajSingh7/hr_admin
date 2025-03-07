@@ -24,12 +24,11 @@ const ViewEmployeeAttendance = () => {
 
   const [employeeData, setEmployeeData] = useState(null)
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState("week") 
+  const [filterType, setFilterType] = useState("week")
   const [todayAttendance, setTodayAttendance] = useState(null)
   const [attendanceHistory, setAttendanceHistory] = useState([])
   const [stats, setStats] = useState({
     avgHours: "0",
-    punchInConsistency: "0%",
     onTimePercentage: "0%",
     totalDaysPresent: 0,
     totalDaysAbsent: 0,
@@ -38,9 +37,9 @@ const ViewEmployeeAttendance = () => {
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    
+
     const date = new Date(dateString);
-    
+
     return new Intl.DateTimeFormat("en-GB", {
       weekday: "short",  // Thu
       day: "2-digit",    // 06
@@ -86,7 +85,7 @@ const ViewEmployeeAttendance = () => {
   useEffect(() => {
     const fetchEmployeeDetails = async () => {
       try {
-        const employeeId = searchParams.get("id") 
+        const employeeId = searchParams.get("id")
         console.log("employeeId", employeeId)
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_ATTENDANCE_URL}user/attendance/employee?employeeCode=${employeeId}&filterType=${filterType}`,
@@ -94,70 +93,68 @@ const ViewEmployeeAttendance = () => {
         const result = await response.json()
 
         if (result.success && result.data.length > 0) {
-
           const todayDate = new Date().toISOString().split("T")[0];
           const today = result.data.find(record => record.createdAt.split("T")[0] === todayDate) || null;
           const history = result.data.filter(record => record.createdAt.split("T")[0] !== todayDate);
-        
-          if(history.length > 0) {
+          const stats = result.stats || {};
+          if (history.length > 0) {
             setAttendanceHistory(history.map(record => ({
-                date: formatDateOnly(record.createdAt),
-                punchIn: record.userpunchInTime ? formatDate(record.userpunchInTime) : "Absent",
-                punchOut: record.userPunchOutTime ? formatDate(record.userPunchOutTime) : "Absent",
-                totalHours: record.totalHours,
-                isValid: record.isValidPunch,
-            }))); 
-    
-            }
-            // setAttendanceHistory([
-            //   {
-            //     date: "2025-03-05",
-            //     punchIn: "09:02",
-            //     punchOut: "17:58",
-            //     totalHours: "8 hours 56 minutes",
-            //     isValid: true,
-            //   },
-            //   {
-            //     date: "2025-03-04",
-            //     punchIn: "09:15",
-            //     punchOut: "18:05",
-            //     totalHours: "8 hours 50 minutes",
-            //     isValid: true,
-            //   },
-            //   {
-            //     date: "2025-03-03",
-            //     punchIn: "08:55",
-            //     punchOut: "17:45",
-            //     totalHours: "8 hours 50 minutes",
-            //     isValid: true,
-            //   },
-            //   {
-            //     date: "2025-03-02",
-            //     punchIn: "09:30",
-            //     punchOut: "17:30",
-            //     totalHours: "8 hours 0 minutes",
-            //     isValid: true,
-            //   },
-            //   {
-            //     date: "2025-03-01",
-            //     punchIn: "Absent",
-            //     punchOut: "Absent",
-            //     totalHours: "0 hours 0 minutes",
-            //     isValid: false,
-            //   },
-            // ])
+              date: formatDateOnly(record.createdAt),
+              punchIn: record.userpunchInTime ? formatDate(record.userpunchInTime) : "Absent",
+              punchOut: record.userPunchOutTime ? formatDate(record.userPunchOutTime) : "Absent",
+              totalHours: record.totalHours,
+              isValid: record.isValidPunch,
+            })));
 
-            // Simulate stats calculation
+          }
+          // setAttendanceHistory([
+          //   {
+          //     date: "2025-03-05",
+          //     punchIn: "09:02",
+          //     punchOut: "17:58",
+          //     totalHours: "8 hours 56 minutes",
+          //     isValid: true,
+          //   },
+          //   {
+          //     date: "2025-03-04",
+          //     punchIn: "09:15",
+          //     punchOut: "18:05",
+          //     totalHours: "8 hours 50 minutes",
+          //     isValid: true,
+          //   },
+          //   {
+          //     date: "2025-03-03",
+          //     punchIn: "08:55",
+          //     punchOut: "17:45",
+          //     totalHours: "8 hours 50 minutes",
+          //     isValid: true,
+          //   },
+          //   {
+          //     date: "2025-03-02",
+          //     punchIn: "09:30",
+          //     punchOut: "17:30",
+          //     totalHours: "8 hours 0 minutes",
+          //     isValid: true,
+          //   },
+          //   {
+          //     date: "2025-03-01",
+          //     punchIn: "Absent",
+          //     punchOut: "Absent",
+          //     totalHours: "0 hours 0 minutes",
+          //     isValid: false,
+          //   },
+          // ])
+
+          // Simulate stats calculation
+          if (stats) {
             setStats({
-              avgHours: "8.5",
-              punchInConsistency: "85%",
-              onTimePercentage: "80%",
-              totalDaysPresent: 22,
-              totalDaysAbsent: 3,
+              avgHours: stats.avgWorkingHours,
+              onTimePercentage: stats.onTimePercentage,
+              totalDaysPresent: stats.daysPresent,
+              totalDaysAbsent: stats.daysAbsent,
             })
-
-            setEmployeeData(today)
-
+          }
+          setEmployeeData(today)
         } else {
           console.error("Failed to fetch employee details:", result.message)
         }
