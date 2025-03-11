@@ -10,6 +10,7 @@ export default function Dashboard() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
+    const [graphPage, setGraphPage] = useState(0); 
 
     const [summary, setSummary] = useState({
         totalEmployees: 0,
@@ -20,8 +21,8 @@ export default function Dashboard() {
     })
 
     const [employees, setEmployees] = useState([])
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]) // Default: Today
-    const [graphPage, setGraphPage] = useState(0)  // Pagination index for the graph (0 = last 10 days, 1 = previous 10 days)
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]) 
+    const [pagination, setPagination] = useState({currentPage: 0, nextPage: null, prevPage:1 }); 
     const [loadingSummary, setLoadingSummary] = useState(false)
     const [loadingGraph, setLoadingGraph] = useState(false)
     const [shiftTimings, setShiftTimings] = useState([])
@@ -103,7 +104,11 @@ export default function Dashboard() {
                         late: entry.lateEmployeesCount
                     }))
                     setAttendanceData(graphFormatted)
-                }
+                    setPagination({
+                        currentPage: data.pagination.currentPage,
+                        prevPage: data.pagination.prevPage, // Enable only if a previous page exists
+                        nextPage: data.pagination.nextPage // Enable only if moving back is possible
+                    });            }
             } catch (error) {
                 console.error("Error fetching graph data:", error)
             } finally {
@@ -189,6 +194,17 @@ export default function Dashboard() {
         updateUrlParams(clickedDate); // Update URL
     };
 
+    const handlePrevPage = () => {
+        if (pagination.prevPage !== null) {
+            setGraphPage(pagination.prevPage);
+        }
+    };
+    
+    const handleNextPage = () => {
+        if (pagination.nextPage !== null) {
+            setGraphPage(pagination.nextPage);
+        }
+    };
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto p-4">
@@ -245,6 +261,27 @@ export default function Dashboard() {
                                         <Bar dataKey="late" fill="#93C5FD" radius={[4, 4, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
+
+                                <div className="flex justify-between mt-4">
+    <button
+        onClick={handlePrevPage}
+        disabled={pagination.prevPage === null} 
+        className={`px-4 py-2 rounded-md ${pagination.prevPage === null ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"}`}
+    >
+        Previous 10 Days
+    </button>
+
+    <button
+        onClick={handleNextPage}
+        disabled={pagination.nextPage === null} 
+        className={`px-4 py-2 rounded-md ${pagination.nextPage === null ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"}`}
+    >
+        Next 10 Days
+    </button>
+</div>
+
+
+
                             </div>
 
                             <div className="flex items-center justify-center gap-4 mb-4 text-sm">
