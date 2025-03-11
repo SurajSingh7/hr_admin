@@ -94,7 +94,9 @@ const ViewEmployeeAttendance = () => {
 
         if (result.success && result.data.length > 0) {
           const todayDate = new Date().toISOString().split("T")[0];
+          console.log("todayDate", todayDate);
           const today = result.data.find(record => record.createdAt.split("T")[0] === todayDate) || null;
+          console.log("today", today);
           const history = result.data.filter(record => record.createdAt.split("T")[0] !== todayDate);
           const stats = result.stats || {};
           if (history.length > 0) {
