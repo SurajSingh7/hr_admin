@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import API_BASE_URL from '../../../../../config/config';
 
 const PersonalComp = ({ setModalData, id }) => {
   const {
@@ -16,7 +17,7 @@ const PersonalComp = ({ setModalData, id }) => {
   useEffect(() => {
     // Fetch existing data for editing
     axios
-      .get(`NEXT_PUBLIC_API_BASE_URL/hrms/personal-details/${id}`)
+      .get(`${API_BASE_URL}/hrms/personal-details/${id}`)
       .then((response) => {
         const defaultValues = {
           personalEmail: '',
@@ -54,7 +55,7 @@ const PersonalComp = ({ setModalData, id }) => {
 
   const onSubmit = (data) => {
     axios
-      .put(`NEXT_PUBLIC_API_BASE_URL/hrms/personal-details/${id}`, data)
+      .put(`${API_BASE_URL}/hrms/personal-details/${id}`, data)
       .then((response) => {
         toast.success('Data updated successfully!');
         setModalData(null); // Close modal or reset modal data

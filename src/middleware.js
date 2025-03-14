@@ -9,7 +9,7 @@ const token = cookies(req).get("userSession");
 
 if(isPublicPath && token)
     {
-    return NextResponse.redirect(new URL("/hrdepartment/staffregistration", req.url));
+    return NextResponse.redirect(new URL("/hrdepartment/staffview", req.url));
 
     }
 
@@ -20,5 +20,5 @@ if(isPublicPath && token)
         }
 }
 export const config = {
-  matcher: ['/', '/hrdepartment/staffregistration'], // Protect these routes
+  matcher: ['/', '/hrdepartment/staffview'], // Protect these routes
 };

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-hot-toast"; // Import react-hot-toast
+import API_BASE_URL from "../../../../../config/config";
 
 const SalaryDetailsComp = ({ setModalData, id }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -10,7 +11,7 @@ const SalaryDetailsComp = ({ setModalData, id }) => {
   useEffect(() => {
     // Fetch data when component is mounted
     axios
-      .get(`NEXT_PUBLIC_API_BASE_URL/hrms/financial-details/${id}`)
+      .get(`${API_BASE_URL}/hrms/financial-details/${id}`)
       .then((response) => {
         // Set form values with the fetched data
         const data = response.data;
@@ -30,7 +31,7 @@ const SalaryDetailsComp = ({ setModalData, id }) => {
   const onSubmit = (data) => {
     // Send updated data to the backend with PUT request
     axios
-      .put(`NEXT_PUBLIC_API_BASE_URL/hrms/financial-details/${id}`, data)
+      .put(`${API_BASE_URL}/hrms/financial-details/${id}`, data)
       .then((response) => {
         toast.success("Salary details updated successfully!"); // Show success toast
         setModalData(null); // Close modal or reset modal data

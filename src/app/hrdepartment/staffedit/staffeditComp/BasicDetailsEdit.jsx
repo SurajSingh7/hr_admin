@@ -1,8 +1,11 @@
+
+
 'use client'
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import API_BASE_URL from "../../../../../config/config";
 
 export default function BasicDetailsEdit({ id, setModalData }) {
   const router = useRouter();
@@ -20,7 +23,7 @@ export default function BasicDetailsEdit({ id, setModalData }) {
     // Fetch data and pre-fill the form
     async function fetchData() {
       try {
-        const response = await fetch(`NEXT_PUBLIC_API_BASE_URL/hrms/basicemployees/${id}`);
+        const response = await fetch(`${API_BASE_URL}/hrms/basicemployees/${id}`);
         if (!response.ok) throw new Error("Failed to fetch data");
         const data = await response.json();
         // Pre-fill form fields
@@ -37,7 +40,7 @@ export default function BasicDetailsEdit({ id, setModalData }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`NEXT_PUBLIC_API_BASE_URL/hrms/basicemployees/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/hrms/basicemployees/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
