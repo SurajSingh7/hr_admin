@@ -1,15 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams,usePathname } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
-import { User, Calendar, Clock, ChevronDown, Search, Plus } from "lucide-react"
+import { User, Clock, Search} from "lucide-react"
+import Sidebar from "@/layouts/sidebar";
 
 export default function Dashboard() {
     const [attendanceData, setAttendanceData] = useState([]);
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
+    const [graphPage, setGraphPage] = useState(0);
 
     const [summary, setSummary] = useState({
         totalEmployees: 0,
@@ -17,18 +19,18 @@ export default function Dashboard() {
         absentEmployeesCount: 0,
         onTimeEmployeesCount: 0,
         lateEmployeesCount: 0,
-    })
+    });
 
-    const [employees, setEmployees] = useState([])
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]) // Default: Today
-    const [graphPage, setGraphPage] = useState(0)  // Pagination index for the graph (0 = last 10 days, 1 = previous 10 days)
-    const [loadingSummary, setLoadingSummary] = useState(false)
-    const [loadingGraph, setLoadingGraph] = useState(false)
-    const [shiftTimings, setShiftTimings] = useState([])
-    const [activeTab, setActiveTab] = useState("LoggedIn")
-    const [searchQuery, setSearchQuery] = useState("")
-    const [selectedShift, setSelectedShift] = useState("10:00-19:00")
-    const [filteredEmployees, setFilteredEmployees] = useState([])
+    const [employees, setEmployees] = useState([]);
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+    const [pagination, setPagination] = useState({ currentPage: 0, nextPage: null, prevPage: 1 });
+    const [loadingSummary, setLoadingSummary] = useState(false);
+    const [loadingGraph, setLoadingGraph] = useState(false);
+    const [shiftTimings, setShiftTimings] = useState([]);
+    const [activeTab, setActiveTab] = useState("LoggedIn");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedShift, setSelectedShift] = useState("10:00-19:00");
+    const [filteredEmployees, setFilteredEmployees] = useState([]);
 
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
@@ -50,10 +52,10 @@ export default function Dashboard() {
     // Fetch summary data and format employees
     useEffect(() => {
         const fetchSummaryData = async () => {
-            setLoadingSummary(true)
+            setLoadingSummary(true);
             try {
-                const response = await fetch(`https://wabackend.gtel.in/api/user/attendance/dashboard?date=${selectedDate}T10:00:00.000Z`)
-                const data = await response.json()
+                const response = await fetch(`${process.env.NEXT_PUBLIC_ATTENDANCE_URL}user/attendance/dashboard?date=${selectedDate}T10:00:00.000Z`);
+                const data = await response.json();
 
                 if (data.success) {
                     // Update summary state
@@ -63,7 +65,7 @@ export default function Dashboard() {
                         absentEmployeesCount: data.absentEmployeesCount,
                         onTimeEmployeesCount: data.onTimeEmployeesCount,
                         lateEmployeesCount: data.lateEmployeesCount,
-                    })
+                    });
 
                     // Format and set employees data
                     const formattedEmployees = data.userData.map(emp => ({
@@ -73,67 +75,75 @@ export default function Dashboard() {
                         status: emp.onTime ? "OnTime" : emp.isLate ? "Late" : "Absent",
                         loginTime: formatDate(emp.userPunchInTime),
                         logoutTime: emp.userPunchOutTime === emp.userPunchInTime ? "PENDING" : formatDate(emp.userPunchOutTime),
-                    }))
-                    setEmployees(formattedEmployees)
-                    setShiftTimings(data.getOnlyShiftTimings || [])
+                    }));
+                    setEmployees(formattedEmployees);
+                    setShiftTimings(data.getOnlyShiftTimings || []);
                 }
             } catch (error) {
-                console.error("Error fetching summary data:", error)
+                console.error("Error fetching summary data:", error);
             } finally {
-                setLoadingSummary(false)
+                setLoadingSummary(false);
             }
-        }
+        };
 
-        fetchSummaryData()
-    }, [selectedDate, selectedShift])
+        fetchSummaryData();
+    }, [selectedDate, selectedShift]);
 
     // Fetch graph data
     useEffect(() => {
         const fetchGraphData = async () => {
-            setLoadingGraph(true)
+            setLoadingGraph(true);
             try {
-                const response = await fetch(`https://wabackend.gtel.in/api/user/attendance/dashboard?page=${graphPage}`)
-                const data = await response.json()
+                const response = await fetch(`${process.env.NEXT_PUBLIC_ATTENDANCE_URL}user/attendance/dashboard?page=${graphPage}`);
+                const data = await response.json();
 
                 if (data.success) {
                     // Format and set graph data
                     const graphFormatted = data.graphData.map(entry => ({
                         name: entry._id.split("-").slice(1).join("-"), // Format date as "MM-DD"
                         onTime: entry.onTimeEmployeesCount,
-                        late: entry.lateEmployeesCount
-                    }))
-                    setAttendanceData(graphFormatted)
+                        late: entry.lateEmployeesCount,
+                    }));
+                    setAttendanceData(graphFormatted);
+                    setPagination({
+                        currentPage: data.pagination.currentPage,
+                        prevPage: 1, // Enable only if a previous page exists
+                        nextPage: 1, // Enable only if moving back is possible
+                    });
                 }
             } catch (error) {
-                console.error("Error fetching graph data:", error)
+                console.error("Error fetching graph data:", error);
             } finally {
-                setLoadingGraph(false)
+                setLoadingGraph(false);
             }
-        }
+        };
 
-        fetchGraphData()
+        fetchGraphData();
     }, [graphPage]);
 
+    // Filter employees based on activeTab and searchQuery
     useEffect(() => {
-        let filtered = employees
-        console.log('filtered', filtered);
+        let filtered = employees;
+
+        // CHANGE: Filter by activeTab
         if (activeTab === "OnTime") {
-            filtered = employees.filter(emp => emp.status === "OnTime")
+            filtered = employees.filter(emp => emp.status === "OnTime");
         } else if (activeTab === "Late") {
-            filtered = employees.filter(emp => emp.status === "Late")
+            filtered = employees.filter(emp => emp.status === "Late");
         } else if (activeTab === "Leave") {
-            filtered = employees.filter(emp => emp.status === "Absent")
+            filtered = employees.filter(emp => emp.status === "Absent");
         }
 
+        // CHANGE: Filter by searchQuery
         if (searchQuery) {
             filtered = filtered.filter(emp =>
                 emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 emp.empCode.toLowerCase().includes(searchQuery.toLowerCase())
-            )
+            );
         }
 
-        setFilteredEmployees(filtered)
-    }, [activeTab, searchQuery, employees])
+        setFilteredEmployees(filtered);
+    }, [activeTab, searchQuery, employees]);
 
     // Custom Tooltip for Graph
     const CustomTooltip = ({ active, payload }) => {
@@ -143,23 +153,20 @@ export default function Dashboard() {
                     <p className="text-center">{`On Time: ${payload[0].value}`}</p>
                     <p className="text-center">{`Late: ${payload[1].value}`}</p>
                 </div>
-            )
+            );
         }
-        return null
-    }
+        return null;
+    };
 
+    // Handle URL params for date and shift
     useEffect(() => {
         const params = new URLSearchParams(searchParams);
         const urlDate = params.get("date") || new Date().toISOString().split("T")[0];
         const urlShift = params.get("shift") || "10:00-19:00";
 
-        setSelectedDate();
-        setSelectedShift();
-    }, []);
-
-    useEffect(() => {
-        router.replace(pathname, { scroll: false }); // Keep the user on the same page but remove query params
-    }, []);
+        setSelectedDate(urlDate);
+        setSelectedShift(urlShift);
+    }, [searchParams]);
 
     const updateUrlParams = (date, shift) => {
         const params = new URLSearchParams();
@@ -182,17 +189,31 @@ export default function Dashboard() {
 
     const handleBarClick = (data) => {
         if (!data || !data.activeLabel) return;
-        
+
         const clickedDate = `2025-${data.activeLabel.replace(" ", "-")}`;
-        
         setSelectedDate(clickedDate);
         updateUrlParams(clickedDate); // Update URL
     };
 
+    const handlePrevPage = () => {
+        if (pagination.prevPage !== null) {
+            setGraphPage(pagination.prevPage);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (pagination.nextPage !== null) {
+            setGraphPage(pagination.nextPage);
+        }
+    };
+
+    const handleRedirection = (url) =>{
+        router.push(url, { scroll: false });
+    }
+    
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto p-4">
-
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center gap-2">
@@ -210,22 +231,19 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-
                 {/* Navigation */}
                 <div className="flex items-center gap-6 mb-6 text-black bg-gray-200">
-                    <p className="text-2xl border-b-2 border-primary p-4 ml-4  font-medium">Dashboard</p>
+                    <p className="text-2xl border-b-2 border-primary p-4 ml-4 font-medium">Dashboard</p>
                 </div>
 
                 {/* Main Content */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Left Column - Charts  */}
+                    {/* Left Column - Charts */}
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                             <div className="flex justify-between items-center mb-4">
                                 <div>
                                     <h2 className="text-black font-normal">Attendance Status</h2>
-                                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                                    </div>
                                 </div>
                             </div>
 
@@ -236,7 +254,7 @@ export default function Dashboard() {
                                         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                                         barGap={0}
                                         barSize={20}
-                                        onClick={(e)=>{handleBarClick(e)}}
+                                        onClick={handleBarClick}
                                     >
                                         <XAxis dataKey="name" scale="point" padding={{ left: 10, right: 10 }} />
                                         <YAxis />
@@ -245,6 +263,24 @@ export default function Dashboard() {
                                         <Bar dataKey="late" fill="#93C5FD" radius={[4, 4, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
+
+                                <div className="flex justify-between mt-4">
+                                    <button
+                                        onClick={handlePrevPage}
+                                        disabled={pagination.prevPage === null}
+                                        className={`px-4 py-2 rounded-md ${pagination.prevPage === null ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"}`}
+                                    >
+                                        Previous 10 Days
+                                    </button>
+
+                                    <button
+                                        onClick={handleNextPage}
+                                        disabled={pagination.nextPage === null}
+                                        className={`px-4 py-2 rounded-md ${pagination.nextPage === null ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"}`}
+                                    >
+                                        Next 10 Days
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex items-center justify-center gap-4 mb-4 text-sm">
@@ -288,8 +324,8 @@ export default function Dashboard() {
                                         </button>
                                     );
                                 })}
-
                             </div>
+
                             <div className="py-2">
                                 <div className="relative">
                                     <input
@@ -297,12 +333,17 @@ export default function Dashboard() {
                                         placeholder="Search employees..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-8 pr-4 py-2 border rounded-md text-sm"
+                                        className="w-full pl-8 pr-4 py-2 border rounded-md text-sm text-black"
                                     />
                                     <Search className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
                                 </div>
                                 <div className="flex justify-end mt-1">
-                                    <button className="text-blue-500 text-xs">View all employees</button>
+                                    <button 
+                                        onClick={() => handleRedirection("/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10")} 
+                                        className="text-blue-500 text-xs"
+                                    >
+                                    View all employees
+                                    </button>                                
                                 </div>
                             </div>
 
@@ -310,12 +351,12 @@ export default function Dashboard() {
                             <div className="bg-gray-200 rounded-lg p-3 mb-4">
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <p className="text-xs text-gray-500">Total</p>
+                                        <p className="text-xl text-gray-500">Total</p>
                                         <p className="text-2xl text-black font-normal">{summary.totalEmployees}</p>
                                     </div>
                                     <div>
                                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-right">
-                                            <button className="text-sm  text-black">On-time</button>
+                                            <button className="text-sm text-black">On-time</button>
                                             <p className="text-xs text-black font-normal">{summary.onTimeEmployeesCount}</p>
                                             <button className="text-sm text-black">Late</button>
                                             <p className="text-xs text-black font-normal">{summary.lateEmployeesCount}</p>
@@ -328,7 +369,7 @@ export default function Dashboard() {
 
                             {/* Employee List */}
                             <div className="space-y-4">
-                                {employees.map((employee, index) => (
+                                {filteredEmployees.map((employee, index) => (
                                     <div key={index} className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <div className="w-8 h-8 rounded-full overflow-hidden">
@@ -359,5 +400,5 @@ export default function Dashboard() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

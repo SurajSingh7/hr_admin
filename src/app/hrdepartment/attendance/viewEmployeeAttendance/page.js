@@ -17,6 +17,8 @@ import {
   BarChart4,
 } from "lucide-react"
 
+
+
 const ViewEmployeeAttendance = () => {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -24,8 +26,6 @@ const ViewEmployeeAttendance = () => {
 
   const [employeeData, setEmployeeData] = useState(null)
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState("week")
-  const [todayAttendance, setTodayAttendance] = useState(null)
   const [attendanceHistory, setAttendanceHistory] = useState([])
   const [stats, setStats] = useState({
     avgHours: "0",
@@ -33,6 +33,9 @@ const ViewEmployeeAttendance = () => {
     totalDaysPresent: 0,
     totalDaysAbsent: 0,
   })
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -64,90 +67,97 @@ const ViewEmployeeAttendance = () => {
     })
   }
 
-  // Calculate time difference
-  const getTimeDifference = (start, end) => {
-    if (!start || !end) return "N/A"
+  const fetchAttendanceHistory = async (newPage = 1) => {
+    try {
+      const employeeCode = searchParams.get("employeeCode");
+      const historyUrl = `${process.env.NEXT_PUBLIC_ATTENDANCE_URL}user/attendance/history/${employeeCode}?page=${newPage}&limit=10`;
 
-    const startDate = new Date(start)
-    const endDate = new Date(end)
+      const historyResponse = await fetch(historyUrl);
+      const historyResult = await historyResponse.json();
 
-    // Calculate difference in milliseconds
-    const diffMs = endDate - startDate
+      if (historyResult.success) {
+        setAttendanceHistory(historyResult.data.map(record => ({
+          date: formatDateOnly(record.createdAt),
+          punchIn: record.userpunchInTime ? formatDate(record.userpunchInTime) : "Absent",
+          punchOut: record.userPunchOutTime ? formatDate(record.userPunchOutTime) : "Absent",
+          totalHours: record.totalHours,
+          isValid: record.isValidPunch,
+        })));
 
-    // Convert to hours and minutes
-    const hours = Math.floor(diffMs / (1000 * 60 * 60))
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+        // Update page and totalPages state
+        setPage(newPage);
+        setTotalPages(historyResult.pagination.totalPages);
+      }
+    } catch (error) {
+      console.error("Error fetching attendance history:", error);
+    }
+  };
 
-    return `${hours} hours ${minutes} minutes`
-  }
+  const handleView = async (attendanceId) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_ATTENDANCE_URL}user/attendance/id/${attendanceId}`
+      );
+      const result = await response.json();
+
+      if (result.success) {
+        setEmployeeData(result.data);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (error) {
+      console.error("Error fetching attendance by ID:", error);
+    }
+  };
+
+  const handleEdit = async (attendanceId) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_ATTENDANCE_URL}user/attendance/id/${attendanceId}`
+      );
+      const result = await response.json();
+
+      if (result.success) {
+        console.log("Editing Attendance:", result.data);
+        // TODO: Open an edit modal with pre-filled data
+      }
+    } catch (error) {
+      console.error("Error fetching attendance by ID:", error);
+    }
+  };
+
 
   // Fetch employee details
   useEffect(() => {
     const fetchEmployeeDetails = async () => {
       try {
-        const employeeId = searchParams.get("id")
-        console.log("employeeId", employeeId)
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_ATTENDANCE_URL}user/attendance/employee?employeeCode=${employeeId}&filterType=${filterType}`,
-        )
-        const result = await response.json()
 
-        if (result.success && result.data.length > 0) {
-          const todayDate = new Date().toISOString().split("T")[0];
-          console.log("todayDate", todayDate);
-          const today = result.data.find(record => record.createdAt.split("T")[0] === todayDate) || null;
-          console.log("today", today);
-          const history = result.data.filter(record => record.createdAt.split("T")[0] !== todayDate);
+        const employeeId = searchParams.get("id");  // This is primary key that we are fetching from the URL
+        const employeeCode = searchParams.get("employeeCode");
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_ATTENDANCE_URL}user/attendance/id/${employeeId}`,
+        )
+        const result = await response.json();
+
+        if (result.success) {
+
+          const today = result.data;
+
+          const history = `${process.env.NEXT_PUBLIC_ATTENDANCE_URL}user/attendance/history/${employeeCode}`;
+          const historyResponse = await fetch(history);
+          const historyResult = await historyResponse.json();
+
           const stats = result.stats || {};
-          if (history.length > 0) {
-            setAttendanceHistory(history.map(record => ({
+          if (historyResult.success) {
+            setAttendanceHistory(historyResult.data.map(record => ({
+              id: record._id,
               date: formatDateOnly(record.createdAt),
               punchIn: record.userpunchInTime ? formatDate(record.userpunchInTime) : "Absent",
               punchOut: record.userPunchOutTime ? formatDate(record.userPunchOutTime) : "Absent",
               totalHours: record.totalHours,
               isValid: record.isValidPunch,
             })));
-
           }
-          // setAttendanceHistory([
-          //   {
-          //     date: "2025-03-05",
-          //     punchIn: "09:02",
-          //     punchOut: "17:58",
-          //     totalHours: "8 hours 56 minutes",
-          //     isValid: true,
-          //   },
-          //   {
-          //     date: "2025-03-04",
-          //     punchIn: "09:15",
-          //     punchOut: "18:05",
-          //     totalHours: "8 hours 50 minutes",
-          //     isValid: true,
-          //   },
-          //   {
-          //     date: "2025-03-03",
-          //     punchIn: "08:55",
-          //     punchOut: "17:45",
-          //     totalHours: "8 hours 50 minutes",
-          //     isValid: true,
-          //   },
-          //   {
-          //     date: "2025-03-02",
-          //     punchIn: "09:30",
-          //     punchOut: "17:30",
-          //     totalHours: "8 hours 0 minutes",
-          //     isValid: true,
-          //   },
-          //   {
-          //     date: "2025-03-01",
-          //     punchIn: "Absent",
-          //     punchOut: "Absent",
-          //     totalHours: "0 hours 0 minutes",
-          //     isValid: false,
-          //   },
-          // ])
-
-          // Simulate stats calculation
           if (stats) {
             setStats({
               avgHours: stats.avgWorkingHours,
@@ -504,6 +514,9 @@ const ViewEmployeeAttendance = () => {
                   >
                     Status
                   </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-sans text-black uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -524,15 +537,49 @@ const ViewEmployeeAttendance = () => {
                         </span>
                       )}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap flex space-x-2">
+                      <button
+                        onClick={() => handleView(record.id)}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium px-2 py-1 border border-blue-600 rounded-md"
+                      >
+                        View
+                      </button>
+
+                      <button
+                        onClick={() => handleEdit(record._id)}
+                        className="text-sm text-green-600 hover:text-green-800 font-medium px-2 py-1 border border-green-600 rounded-md"
+                      >
+                        Edit
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <button className="text-sm text-indigo-600 hover:text-indigo-900 font-medium">View Full History →</button>
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between">
+            <button
+              className={`text-sm font-medium ${page > 1 ? "text-indigo-600 hover:text-indigo-900" : "text-gray-400 cursor-not-allowed"}`}
+              onClick={() => fetchAttendanceHistory(page - 1)}
+              disabled={page === 1}
+            >
+              ← Previous
+            </button>
+
+            <span className="text-sm font-medium text-gray-600">
+              Page {page} of {totalPages}
+            </span>
+
+            <button
+              className={`text-sm font-medium ${page < totalPages ? "text-indigo-600 hover:text-indigo-900" : "text-gray-400 cursor-not-allowed"}`}
+              onClick={() => fetchAttendanceHistory(page + 1)}
+              disabled={page === totalPages}
+            >
+              Next →
+            </button>
           </div>
+
         </div>
       </div>
     </div>

@@ -1,7 +1,9 @@
 'use client'
 import React, { useState } from "react";
 import { Layout, Menu, Button, theme } from "antd";
-import { UploadOutlined, ShopOutlined,FormOutlined, ShoppingCartOutlined,ReconciliationOutlined, ThunderboltOutlined,TagOutlined, UserOutlined, DashboardOutlined,MoneyCollectOutlined,StockOutlined,HomeFilled  } from "@ant-design/icons";
+
+import { UploadOutlined,TeamOutlined, ShopOutlined,FormOutlined, ShoppingCartOutlined,ReconciliationOutlined, ThunderboltOutlined,TagOutlined, UserOutlined, DashboardOutlined,MoneyCollectOutlined,StockOutlined,HomeFilled  } from "@ant-design/icons";
+
 import Link from "next/link";// Assuming you are using React Router
 // import './slidebar.css'
 
@@ -98,6 +100,15 @@ const Sidebar = ({ status , func}) => {
       <Link href="/hrdepartment/inventory" style={{color: "white"}}>HR Inventory</Link>
     </Menu.Item>
 
+    <SubMenu key="attendance-dashboard" icon={<TeamOutlined />} title="Attendance Dashboard">
+    <Menu.Item key="attendance-view">
+      <Link href="/hrdepartment/attendance/dashboard" style={{ color: "white" }}>Dashboard Overview</Link>
+    </Menu.Item>
+    <Menu.Item key="view-all-attendance">
+      <Link href="/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10" style={{ color: "white" }}>View All Attendance</Link>
+    </Menu.Item>
+  </SubMenu>
+    
     {/* <Menu.Item key="4-sub11" icon={<UserOutlined />}>
       <Link href="/hrdepartment/resigned" style={{color: "white"}}>Resigned Employees</Link>
     </Menu.Item> */}
