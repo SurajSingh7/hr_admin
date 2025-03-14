@@ -17,8 +17,8 @@ const AttendancePage = () => {
     setDropdownOpen(dropdownOpen === id ? null : id);
   };
 
-  const handleViewEmployee = (employeeId) => {
-    router.push(`/hrdepartment/attendance/viewEmployeeAttendance?id=${employeeId}`);
+  const handleViewEmployee = (employeeCode, id) => {
+    router.push(`/hrdepartment/attendance/viewEmployeeAttendance?id=${id}&employeeCode=${employeeCode}`);
   };
 
   // Filters State
@@ -78,12 +78,13 @@ const AttendancePage = () => {
       if (result.success) {
         setAttendanceData(result.data);
         setPagination(result.pagination);
+        setCurrentPage(Number(page) || 1);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
     setLoading(false);
-  }, [router, searchParams]);
+  }, [limit, router, searchParams]);
 
   // Debounced API call
   const debouncedFetch = useMemo(
@@ -140,7 +141,10 @@ const AttendancePage = () => {
       }));
       fetchAttendanceData(params, params.page || 1);
     }
-  }, []);
+    else {
+      fetchAttendanceData(initialFilters, 1);
+    }
+  }, [searchParams, initialFilters]);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -155,6 +159,17 @@ const AttendancePage = () => {
   // Handle page number click
   const handlePageClick = (page) => {
     setCurrentPage(page);
+
+    // Update URL with the new page
+    const query = new URLSearchParams({
+      ...filters,
+      page,
+      limit,
+    });
+
+    router.push(`?${query.toString()}`, { scroll: false });
+
+    // Fetch data for the new page
     fetchAttendanceData(filters, page);
   };
 
@@ -433,47 +448,46 @@ const AttendancePage = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 relative">
-            {/* Action Button */}
-            <button
-              onClick={() => toggleDropdown(employee._id)}
-              className="text-gray-500 hover:text-gray-700 focus:outline-none"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-              </svg>
-            </button>
+                        {/* Action Button */}
+                        <button
+                          onClick={() => toggleDropdown(employee._id)}
+                          className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                          </svg>
+                        </button>
 
-            {/* Dropdown Menu */}
-            {dropdownOpen === employee._id && (
-              <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      handleViewEmployee(employee.employeeCode)
-                      setDropdownOpen(null)
-                    }}
-                    className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => {
-                      console.log("Edit Employee:", employee._id)
-                      setDropdownOpen(null)
-                    }}
-                    className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Edit
-                  </button>
-                </div>
-              </div>
-            )}
-          </td>
+                        {/* Dropdown Menu */}
+                        {dropdownOpen === employee._id && (
+                          <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                            <div className="py-1">
+                              <button
+                                onClick={() => {
+                                  handleViewEmployee(employee.employeeCode, employee._id)
+                                  setDropdownOpen(null)
+                                }}
+                                className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                View
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDropdownOpen(null)
+                                }}
+                                className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
