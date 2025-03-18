@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { User, Clock, Search} from "lucide-react"
+import { ClipLoader } from 'react-spinners';
 import Sidebar from "@/layouts/sidebar";
 
 export default function Dashboard() {
@@ -31,6 +32,7 @@ export default function Dashboard() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedShift, setSelectedShift] = useState("10:00-19:00");
     const [filteredEmployees, setFilteredEmployees] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
@@ -207,9 +209,16 @@ export default function Dashboard() {
         }
     };
 
-    const handleRedirection = (url) =>{
-        router.push(url, { scroll: false });
-    }
+    const handleRedirection = async (url) => {
+        setIsLoading(true); 
+        try {
+            await router.push(url, { scroll: false });
+        } catch (error) {
+            console.error("Redirection failed:", error);
+        } finally {
+            setIsLoading(false); 
+        }
+    };
     
     return (
         <div className="min-h-screen bg-gray-50">
@@ -338,13 +347,18 @@ export default function Dashboard() {
                                     <Search className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
                                 </div>
                                 <div className="flex justify-end mt-1">
-                                    <button 
-                                        onClick={() => handleRedirection("/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10")} 
-                                        className="text-blue-500 text-xs"
-                                    >
-                                    View all employees
-                                    </button>                                
-                                </div>
+            <button
+                onClick={() => handleRedirection("/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10")}
+                className="text-blue-500 text-xs"
+                disabled={isLoading} // Disable button while loading
+            >
+                {isLoading ? (
+                   <ClipLoader size={15} color="#3b82f6" />  // Show loading text or spinner
+                ) : (
+                    <span>View all employees</span>
+                )}
+            </button>
+        </div>
                             </div>
 
                             {/* Total Summary */}
