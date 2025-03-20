@@ -51,9 +51,9 @@ const Sidebar = ({ status , func}) => {
     token: {
       // Seed Token
       // colorPrimary: '#00b96b',
-      // borderRadius: 2,
+      // borderRadius: 2,#001529
       // Alias Token
-       colorBgContainer: '#f6ffed'  //     a78a7f,
+       colorBgContainer: '#f6ffed',  //     a78a7f, #f6ffed
     },
   }}
   mode="inline"
@@ -100,12 +100,12 @@ const Sidebar = ({ status , func}) => {
       <Link href="/hrdepartment/inventory" style={{color: "white"}}>HR Inventory</Link>
     </Menu.Item>
 
-    <SubMenu key="attendance-dashboard" icon={<TeamOutlined />} title="Attendance Dashboard">
+    <SubMenu key="attendance-dashboard" icon={<TeamOutlined />} title="Attendance Dashboard"  popupStyle={{ backgroundColor: '#001529' }}>
     <Menu.Item key="attendance-view">
       <Link href="/hrdepartment/attendance/dashboard" style={{ color: "white" }}>Dashboard Overview</Link>
     </Menu.Item>
     <Menu.Item key="view-all-attendance">
-      <Link href="/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10" style={{ color: "white" }}>View All Attendance</Link>
+      <Link href="/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10" style={{ color: "white" ,}}>View All Attendance</Link>
     </Menu.Item>
   </SubMenu>
     
