@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { User, Clock, Search} from "lucide-react"
 import { ClipLoader } from 'react-spinners';
 import Sidebar from "@/layouts/sidebar";
+import Layout from "@/layouts/Layout";
 
 export default function Dashboard() {
     const [attendanceData, setAttendanceData] = useState([]);
@@ -221,198 +222,200 @@ export default function Dashboard() {
     };
     
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto p-4">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-2">
-                        <Clock className="w-6 h-6 text-gray-600" />
-                        <input type="date" value={selectedDate} onChange={handleDateChange} className="border px-3 py-1 rounded-md text-sm text-black" />
-                    </div>
+        <Layout>
+            <div className="min-h-screen bg-gray-50">
+                <div className="max-w-7xl mx-auto p-4">
+                    {/* Header */}
+                    <div className="flex justify-between items-center mb-6">
+                        <div className="flex items-center gap-2">
+                            <Clock className="w-6 h-6 text-gray-600" />
+                            <input type="date" value={selectedDate} onChange={handleDateChange} className="border px-3 py-1 rounded-md text-sm text-black" />
+                        </div>
 
-                    <div className="flex items-center gap-2">
-                        <p className="text-gray-500">Select Shift Time </p>
-                        <select value={selectedShift} onChange={handleShiftChange} className="border px-3 py-1 rounded-md text-normal text-black">
-                            {shiftTimings.map((shift, index) => (
-                                <option key={index} value={shift}>{shift}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                {/* Navigation */}
-                <div className="flex items-center gap-6 mb-6 text-black bg-gray-200">
-                    <p className="text-2xl border-b-2 border-primary p-4 ml-4 font-medium">Dashboard</p>
-                </div>
-
-                {/* Main Content */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Left Column - Charts */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
-                            <div className="flex justify-between items-center mb-4">
-                                <div>
-                                    <h2 className="text-black font-normal">Attendance Status</h2>
-                                </div>
-                            </div>
-
-                            <div className="h-64">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart
-                                        data={attendanceData}
-                                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                                        barGap={0}
-                                        barSize={20}
-                                        onClick={handleBarClick}
-                                    >
-                                        <XAxis dataKey="name" scale="point" padding={{ left: 10, right: 10 }} />
-                                        <YAxis />
-                                        <Tooltip content={<CustomTooltip />} />
-                                        <Bar dataKey="onTime" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey="late" fill="#93C5FD" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-
-                                <div className="flex justify-between mt-4">
-                                    <button
-                                        onClick={handlePrevPage}
-                                        disabled={pagination.prevPage === null}
-                                        className={`px-4 py-2 rounded-md ${pagination.prevPage === null ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"}`}
-                                    >
-                                        Previous 10 Days
-                                    </button>
-
-                                    <button
-                                        onClick={handleNextPage}
-                                        disabled={pagination.nextPage === null}
-                                        className={`px-4 py-2 rounded-md ${pagination.nextPage === null ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"}`}
-                                    >
-                                        Next 10 Days
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-center gap-4 mb-4 text-sm">
-                                <div className="flex items-center gap-1">
-                                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                                    <span className="text-black">On time</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <div className="w-3 h-3 rounded-full bg-blue-300"></div>
-                                    <span className="text-black">Late</span>
-                                </div>
-                            </div>
+                        <div className="flex items-center gap-2">
+                            <p className="text-gray-500">Select Shift Time </p>
+                            <select value={selectedShift} onChange={handleShiftChange} className="border px-3 py-1 rounded-md text-normal text-black">
+                                {shiftTimings.map((shift, index) => (
+                                    <option key={index} value={shift}>{shift}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
-                    {/* Right Column - Attendance Summary and Employees */}
-                    <div className="space-y-6">
-                        {/* Attendance Summary */}
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
-                            <div className="flex border-b pb-2">
-                                {["LoggedIn", "OnTime", "Late", "Leave"].map(tab => {
-                                    let count = 0;
-                                    if (tab === "LoggedIn") {
-                                        count = summary.presentEmployeesCount;
-                                    } else if (tab === "OnTime") {
-                                        count = summary.onTimeEmployeesCount;
-                                    } else if (tab === "Late") {
-                                        count = summary.lateEmployeesCount;
-                                    } else if (tab === "Leave") {
-                                        count = summary.absentEmployeesCount;
-                                    }
+                    {/* Navigation */}
+                    <div className="flex items-center gap-6 mb-6 text-black bg-gray-200">
+                        <p className="text-2xl border-b-2 border-primary p-4 ml-4 font-medium">Dashboard</p>
+                    </div>
 
-                                    return (
-                                        <button
-                                            key={tab}
-                                            className={`px-4 py-1 text-sm ${activeTab === tab ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-500"
-                                                }`}
-                                            onClick={() => setActiveTab(tab)}
+                    {/* Main Content */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Left Column - Charts */}
+                        <div className="lg:col-span-2 space-y-6">
+                            <div className="bg-white rounded-lg p-4 shadow-sm">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div>
+                                        <h2 className="text-black font-normal">Attendance Status</h2>
+                                    </div>
+                                </div>
+
+                                <div className="h-64">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={attendanceData}
+                                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                            barGap={0}
+                                            barSize={20}
+                                            onClick={handleBarClick}
                                         >
-                                            {tab} ({count || 0}) {/* Ensure count is always a valid number */}
+                                            <XAxis dataKey="name" scale="point" padding={{ left: 10, right: 10 }} />
+                                            <YAxis />
+                                            <Tooltip content={<CustomTooltip />} />
+                                            <Bar dataKey="onTime" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="late" fill="#93C5FD" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+
+                                    <div className="flex justify-between mt-4">
+                                        <button
+                                            onClick={handlePrevPage}
+                                            disabled={pagination.prevPage === null}
+                                            className={`px-4 py-2 rounded-md ${pagination.prevPage === null ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"}`}
+                                        >
+                                            Previous 10 Days
                                         </button>
-                                    );
-                                })}
-                            </div>
 
-                            <div className="py-2">
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Search employees..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-8 pr-4 py-2 border rounded-md text-sm text-black"
-                                    />
-                                    <Search className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
-                                </div>
-                                <div className="flex justify-end mt-1">
-            <button
-                onClick={() => handleRedirection("/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10")}
-                className="text-blue-500 text-xs"
-                disabled={isLoading} // Disable button while loading
-            >
-                {isLoading ? (
-                   <ClipLoader size={15} color="#3b82f6" />  // Show loading text or spinner
-                ) : (
-                    <span>View all employees</span>
-                )}
-            </button>
-        </div>
-                            </div>
-
-                            {/* Total Summary */}
-                            <div className="bg-gray-200 rounded-lg p-3 mb-4">
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <p className="text-xl text-gray-500">Total</p>
-                                        <p className="text-2xl text-black font-normal">{summary.totalEmployees}</p>
+                                        <button
+                                            onClick={handleNextPage}
+                                            disabled={pagination.nextPage === null}
+                                            className={`px-4 py-2 rounded-md ${pagination.nextPage === null ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"}`}
+                                        >
+                                            Next 10 Days
+                                        </button>
                                     </div>
-                                    <div>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-right">
-                                            <button className="text-sm text-black">On-time</button>
-                                            <p className="text-xs text-black font-normal">{summary.onTimeEmployeesCount}</p>
-                                            <button className="text-sm text-black">Late</button>
-                                            <p className="text-xs text-black font-normal">{summary.lateEmployeesCount}</p>
-                                            <button className="text-sm text-black">Leave</button>
-                                            <p className="text-xs text-black font-normal">{summary.absentEmployeesCount}</p>
+                                </div>
+
+                                <div className="flex items-center justify-center gap-4 mb-4 text-sm">
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                        <span className="text-black">On time</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-3 h-3 rounded-full bg-blue-300"></div>
+                                        <span className="text-black">Late</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column - Attendance Summary and Employees */}
+                        <div className="space-y-6">
+                            {/* Attendance Summary */}
+                            <div className="bg-white rounded-lg p-4 shadow-sm">
+                                <div className="flex border-b pb-2">
+                                    {["LoggedIn", "OnTime", "Late", "Leave"].map(tab => {
+                                        let count = 0;
+                                        if (tab === "LoggedIn") {
+                                            count = summary.presentEmployeesCount;
+                                        } else if (tab === "OnTime") {
+                                            count = summary.onTimeEmployeesCount;
+                                        } else if (tab === "Late") {
+                                            count = summary.lateEmployeesCount;
+                                        } else if (tab === "Leave") {
+                                            count = summary.absentEmployeesCount;
+                                        }
+
+                                        return (
+                                            <button
+                                                key={tab}
+                                                className={`px-4 py-1 text-sm ${activeTab === tab ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-500"
+                                                    }`}
+                                                onClick={() => setActiveTab(tab)}
+                                            >
+                                                {tab} ({count || 0}) {/* Ensure count is always a valid number */}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="py-2">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Search employees..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="w-full pl-8 pr-4 py-2 border rounded-md text-sm text-black"
+                                        />
+                                        <Search className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                    </div>
+                                    <div className="flex justify-end mt-1">
+                <button
+                    onClick={() => handleRedirection("/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10")}
+                    className="text-blue-500 text-xs"
+                    disabled={isLoading} // Disable button while loading
+                >
+                    {isLoading ? (
+                        <ClipLoader size={15} color="#3b82f6" />  // Show loading text or spinner
+                    ) : (
+                        <span>View all employees</span>
+                    )}
+                </button>
+            </div>
+                                </div>
+
+                                {/* Total Summary */}
+                                <div className="bg-gray-200 rounded-lg p-3 mb-4">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <p className="text-xl text-gray-500">Total</p>
+                                            <p className="text-2xl text-black font-normal">{summary.totalEmployees}</p>
+                                        </div>
+                                        <div>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-right">
+                                                <button className="text-sm text-black">On-time</button>
+                                                <p className="text-xs text-black font-normal">{summary.onTimeEmployeesCount}</p>
+                                                <button className="text-sm text-black">Late</button>
+                                                <p className="text-xs text-black font-normal">{summary.lateEmployeesCount}</p>
+                                                <button className="text-sm text-black">Leave</button>
+                                                <p className="text-xs text-black font-normal">{summary.absentEmployeesCount}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Employee List */}
-                            <div className="space-y-4">
-                                {filteredEmployees.map((employee, index) => (
-                                    <div key={index} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full overflow-hidden">
-                                                <User className="h-8 w-8 text-gray-500" />
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center text-black gap-2">
-                                                    <p className="font-medium">{employee.name}</p>
-                                                    <div
-                                                        className={`w-2 h-2 rounded-full ${employee.status === "Late" ? "bg-yellow-400" : "bg-green-400"}`}
-                                                    ></div>
-                                                    <span className="text-xs capitalize text-gray-500">{employee.status}</span>
+                                {/* Employee List */}
+                                <div className="space-y-4">
+                                    {filteredEmployees.map((employee, index) => (
+                                        <div key={index} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-full overflow-hidden">
+                                                    <User className="h-8 w-8 text-gray-500" />
                                                 </div>
+                                                <div>
+                                                    <div className="flex items-center text-black gap-2">
+                                                        <p className="font-medium">{employee.name}</p>
+                                                        <div
+                                                            className={`w-2 h-2 rounded-full ${employee.status === "Late" ? "bg-yellow-400" : "bg-green-400"}`}
+                                                        ></div>
+                                                        <span className="text-xs capitalize text-gray-500">{employee.status}</span>
+                                                    </div>
 
-                                                <p className="text-xs text-black">
-                                                    <span className="text-black">Login:  </span>
-                                                    {employee.loginTime}
-                                                </p>
+                                                    <p className="text-xs text-black">
+                                                        <span className="text-black">Login:  </span>
+                                                        {employee.loginTime}
+                                                    </p>
 
-                                                <p className="text-xs text-black">Logout:  {employee.logoutTime}</p>
+                                                    <p className="text-xs text-black">Logout:  {employee.logoutTime}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </Layout>
     );
 }

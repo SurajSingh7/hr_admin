@@ -16,6 +16,7 @@ import {
   Timer,
   BarChart4,
 } from "lucide-react"
+import Layout from "@/layouts/Layout"
 
 
 
@@ -213,6 +214,7 @@ const ViewEmployeeAttendance = () => {
   }
 
   return (
+    <Layout>
     <div className="bg-gray-50 min-h-screen pb-12">
       {/* Header with back button */}
       <div className="bg-white shadow-sm">
@@ -583,6 +585,7 @@ const ViewEmployeeAttendance = () => {
         </div>
       </div>
     </div>
+    </Layout>
   )
 }
 
