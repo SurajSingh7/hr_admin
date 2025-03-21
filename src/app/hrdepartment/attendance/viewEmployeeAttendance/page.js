@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import ViewEmployeeAttendance from './viewEmployeeAttendance';
+import ViewEmployeeAttendance from './ViewEmployeeAttendance';
 
 
 const page = () => {
