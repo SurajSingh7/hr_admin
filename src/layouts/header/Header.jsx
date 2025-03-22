@@ -53,7 +53,7 @@ const Header = ({ heading, status, func }) => {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [messageInput, setMessageInput] = useState("");
-  const [selectedDepartment, setSelectedDepartment] =useState("SelectDepartment");
+  const [selectedDepartment, setSelectedDepartment] = useState("SelectDepartment");
   const [messageType, setMessageType] = useState("SelectType");
   const [userData, setUserData] = useState(null);
   const [leaveRequests, setLeaveRequests] = useState([]); // State to store leave requests
@@ -198,20 +198,17 @@ const Header = ({ heading, status, func }) => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      console.log("Header line ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ response");
       try {
         const url = `${API_BASE_URL}/hrms/authdata`;
         const response = await fetch(url, {
           method: "GET",
-          credentials: "include", // Include cookies with the request
+          credentials: "include",
         });
-      
-        console.log("Header line 200 response",response);
 
         if (response.ok) {
           const result = await response.json();
           const employeeData = result.data[0];
-          const { email, department, basicemployees, role,departmentOfficialNumber } = employeeData;
+          const { email, department, basicemployees, role, departmentOfficialNumber } = employeeData;
           console.log("employeeData", employeeData);
 
           setUserData({
@@ -222,10 +219,10 @@ const Header = ({ heading, status, func }) => {
             firstName: basicemployees?.firstName,
             lastName: basicemployees?.lastName,
             employeeCode: basicemployees?.employeeCode,
-            profileImage:basicemployees?.profileImage,
+            profileImage: basicemployees?.profileImage,
             uploadFileInfo: basicemployees?.uploadFileInfo[0]?.path
           });
-          console.log("lin223 mobile number",userData);
+          console.log("lin223 mobile number", userData);
         } else {
           setError("Failed to fetch data");
         }
@@ -284,7 +281,6 @@ const Header = ({ heading, status, func }) => {
     },
   ];
 
-
   const modalContent = (
     <div>
       <Select
@@ -340,216 +336,70 @@ const Header = ({ heading, status, func }) => {
     },
   ];
 
-  // const notificationItems = leaveRequests.slice(0, 2).map((leave, index) => ({
-  //   key: `leave-${index}`,
-  //   label: (
-  //     <div key={`leave-${index}`}>
-  //       <Text>{`Leave Request: ${leave.employeeName}`}</Text>
-  //       <div
-  //         style={{
-  //           display: "flex",
-  //           justifyContent: "space-between",
-  //           alignItems: "center",
-  //           marginTop: "4px",
-  //         }}
-  //       >
-  //         <Text type="secondary">{`Leave Type: ${leave.leaveType}`}</Text>
-  //         <div>
-  //           <AntButton
-  //             type="primary"
-  //             size="small"
-  //             icon={<CheckOutlined />}
-  //             onClick={() => handleApprove(leave._id, "Approved")}
-  //             style={{ marginRight: "8px" }}
-  //           />
-  //           <AntButton
-  //             danger
-  //             size="small"
-  //             icon={<CloseOutlined />}
-  //             onClick={() => handleReject(leave._id, "Denied")}
-  //           />
-  //         </div>
-  //       </div>
-  //     </div>
-  //   ),
-  // }));
-
-  // const notificationResourceItems = resourceRequests
-  //   .slice(0, 2)
-  //   .map((resource, index) => ({
-  //     key: `resource-${index}`,
-  //     label: (
-  //       <div key={`resource-${index}`}>
-  //         <Text>{`Resource Request: ${resource.employeeName}`}</Text>
-  //         <div
-  //           style={{
-  //             display: "flex",
-  //             justifyContent: "space-between",
-  //             alignItems: "center",
-  //             marginTop: "4px",
-  //           }}
-  //         >
-  //           <Text type="secondary">{`Resource Type: ${resource.resources}`}</Text>
-  //           <div>
-  //             <AntButton
-  //               type="primary"
-  //               size="small"
-  //               icon={<CheckOutlined />}
-  //               onClick={() => handleApprove(resource.id, "Approved")}
-  //               style={{ marginRight: "8px" }}
-  //             />
-  //             <AntButton
-  //               danger
-  //               size="small"
-  //               icon={<CloseOutlined />}
-  //               onClick={() => handleReject(resource.id, "Denied")}
-  //             />
-  //           </div>
-  //         </div>
-  //       </div>
-  //     ),
-  //   }));
-
-  // const handleViewAllNotifications = () => {
-  //   setAllNotificationsVisible(true);
-  // };
-
   return (
     <>
-  
-      <Toaster/>
+      <Toaster />
       <AntHeader
-      style={{ padding: "0px", background: "#00000", height: "40px", top: 0, width: "100vw", 
-        color: "white", position: "fixed",zIndex: 1,right: "-15px",left: 0,
-      }}
+        style={{
+          padding: "0px", background: "#00000", height: "40px", top: 0, width: "100vw",
+          color: "white", position: "fixed", zIndex: 1, right: "-15px", left: 0,
+        }}
       >
 
-      {/* text-Gigantic  */}
-      {!status && (
-        <div className="header-logo"style={{ position: "absolute", left: "50px", bottom: "-11px" }}>
-          <Text style={{ color: "white", fontSize: "13px", fontWeight: 600 }}>
-          GIGANTIC
-          </Text>
-        </div>
-      )}
-
-            {/* text-Gigantic  */}
-      {status && (
-        <div className="header-logo"style={{ position: "absolute", left: "15px", bottom: "-11px" }}>
-          <Text style={{ color: "white", fontSize: "13px", fontWeight: 600 }}>
-          GIGANTIC
-          </Text>
+        {/* text-Gigantic  */}
+        {!status && (
+          <div className="header-logo" style={{ position: "absolute", left: "50px", bottom: "-11px" }}>
+            <Text style={{ color: "white", fontSize: "13px", fontWeight: 600 }}>
+              GIGANTIC
+            </Text>
           </div>
-      )}
+        )}
 
+        {/* text-Gigantic  */}
+        {status && (
+          <div className="header-logo" style={{ position: "absolute", left: "15px", bottom: "-11px" }}>
+            <Text style={{ color: "white", fontSize: "13px", fontWeight: 600 }}>
+              GIGANTIC
+            </Text>
+          </div>
+        )}
 
-      <div
+        <div
           className="header-container"
-          style={{display: "flex",alignItems: "center",justifyContent: "end",height: "100%",padding: "0 20px",gap:"20px" }}
-      >
-          {/* Search Bar */}
-          {/* <SearchBar /> */}
-
-          {/* Notification, Mail, Settings, Dark Mode */}
-          {/* <NotificationMailSettings notificationMenuItems={notificationMenuItems} /> */}
-
-          
+          style={{ display: "flex", alignItems: "center", justifyContent: "end", height: "100%", padding: "0 20px", gap: "20px" }}
+        >
           {/* mailmessage circuler,imp message send to employee  */}
-          <div  onClick={toggleModal} > <MailOutlined />  </div>
-          
+          <div onClick={toggleModal} > <MailOutlined />  </div>
 
-          {/* Whatapps icon */}
-          {/* <Popover
-            title="Scan to Chat on WhatsApp"
-            content={
-              loadingQr ? (
-                <Spin />
-              ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    padding: "10px",
-                  }}
-                >
-                  <QRCode value={qrValue} />
-                  <br />
-                  <Button
-                    type="primary"
-                    onClick={handleLogout}
-                    style={{
-                      marginTop: "10px",
-                      fontSize: "16px",
-                      cursor: "pointer",
-                      width: "100%",
-                    }}
-                  >
-                    Logout
-                  </Button>
-                </div>
-              )
-            }
-            trigger="hover"
-          >
-            <div>
-              <a
-                href="https://wa.me/1234567890"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: "white" }}
-              >
-                <WhatsAppOutlined />
-              </a>
-            </div>
-          </Popover> */}
-
-          
-           {/* <Qr userData={userData}/> */}
-           {/* <Qr userData={userData} qrstatus={qrstatus} setQrstatus={setQrstatus}/> */}
-
-
-
-          
-           {/* <WhatsAppOutlined /> */}
-           <Qr userData={userData} qrstatus={qrstatus} setQrstatus={setQrstatus}/>
-          
-         
+          {/* <WhatsAppOutlined /> */}
+          <Qr userData={userData} qrstatus={qrstatus} setQrstatus={setQrstatus} />
 
           {/* Profile */}
           <Profile userData={userData} profileMenuItems={profileMenuItems} />
-      </div>
+        </div>
 
-
-      {/* menu button */}
-      <Button
-        onClick={func}
-        type="text"
-        icon={status ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-        // style={{fontSize: "16px",width: 30,height: 30,position: "absolute", top: 2, left: status ? 75 : 200, color: "white",
-        style={{fontSize: "16px",width: 30,height: 30,position: "absolute", top: 2, left: status ? 75 : 200, color: "white",
-        }}
-      />
-
-  
-     {/* modal-> mailmessage circuler,imp message send to employee */}
-     <Modal
-        title="Send Message"
-        visible={modalVisible}
-        onCancel={toggleModal}
-        footer={null}
-      >
-        {modalContent}
-      </Modal>
-
-
+        {/* menu button */}
+        <Button
+          onClick={func}
+          type="text"
+          icon={status ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          // style={{fontSize: "16px",width: 30,height: 30,position: "absolute", top: 2, left: status ? 75 : 200, color: "white",
+          style={{
+            fontSize: "16px", width: 30, height: 30, position: "absolute", top: 2, left: status ? 75 : 200, color: "white",
+          }}
+        />
+        {/* modal-> mailmessage circuler,imp message send to employee */}
+        <Modal
+          title="Send Message"
+          visible={modalVisible}
+          onCancel={toggleModal}
+          footer={null}
+        >
+          {modalContent}
+        </Modal>
       </AntHeader>
-
-    </> 
+    </>
   );
 };
 
 export default Header;
-
-
-

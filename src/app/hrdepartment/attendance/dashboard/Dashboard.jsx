@@ -349,18 +349,18 @@ export default function Dashboard() {
                                         <Search className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
                                     </div>
                                     <div className="flex justify-end mt-1">
-                <button
-                    onClick={() => handleRedirection("/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10")}
-                    className="text-blue-500 text-xs"
-                    disabled={isLoading} // Disable button while loading
-                >
-                    {isLoading ? (
-                        <ClipLoader size={15} color="#3b82f6" />  // Show loading text or spinner
-                    ) : (
-                        <span>View all employees</span>
-                    )}
-                </button>
-            </div>
+                                        <button
+                                            onClick={() => handleRedirection("/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10")}
+                                            className="text-blue-500 text-xs"
+                                            disabled={isLoading} // Disable button while loading
+                                        >
+                                            {isLoading ? (
+                                                <ClipLoader size={15} color="#3b82f6" />  // Show loading text or spinner
+                                            ) : (
+                                                <span>View all employees</span>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Total Summary */}

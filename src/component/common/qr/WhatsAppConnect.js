@@ -66,10 +66,7 @@ export default function WhatsAppConnect({ userData }) {
 
     try {
       const sessionId = socket.id;
-      const devicePhone = userData?.departmentOfficialNumber
-      ;
-      // console.log("userData12345",userData);
-      // console.log("numbers->>>",typeof devicePhone)
+      const devicePhone = userData?.departmentOfficialNumber;
 
       const response = await fetch(`${API_BASE_URL}/api/external/connect-external-device`, {
         method: "POST",

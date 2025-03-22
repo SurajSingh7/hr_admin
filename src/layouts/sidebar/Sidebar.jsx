@@ -105,7 +105,10 @@ const Sidebar = ({ status , func}) => {
       <Link href="/hrdepartment/attendance/dashboard" style={{ color: "white" }}>Dashboard Overview</Link>
     </Menu.Item>
     <Menu.Item key="view-all-attendance">
-      <Link href="/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10" style={{ color: "white" ,}}>View All Attendance</Link>
+      <Link href="/hrdepartment/attendance/viewAllEmployeeAttendance?page=1&limit=10" style={{ color: "white"}}>View All Attendance</Link>
+    </Menu.Item>
+    <Menu.Item key="Add-attendance">
+      <Link href="/hrdepartment/attendance/addAttendance/"style={{ color: "white"}}>Add Attendance</Link>
     </Menu.Item>
   </SubMenu>
     
