@@ -1,6 +1,6 @@
 "use client";
-
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 const ATTENDANCE_URL = process.env.NEXT_PUBLIC_ATTENDANCE_URL;
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -12,52 +12,84 @@ const AddEmployeeAttendance = () => {
   });
 
   const [formData, setFormData] = useState({
+    name: "",
+    PersonEmployeeCode: "",
     actualPunchInTime: "",
     userpunchInTime: "",
     actualPunchOutTime: "",
     userPunchOutTime: "",
     deviceId: "",
-    shift: "day", // Default to "day" shift
+    isDayShift: true,
+    isNightShift: false,
+    shift: "day",
   });
 
   const [loading, setLoading] = useState(true);
 
-//   useEffect(() => {
-//     const fetchDashboardData = async () => {
-//       try {
-//         const url = `${API_BASE_URL}/hrms/authdata`;
-//         const response = await fetch(url, {
-//           method: "GET",
-//           credentials: "include",
-//         });
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const url = `${API_BASE_URL}/hrms/authdata`;
+        const response = await fetch(url, { method: "GET", credentials: "include" });
 
-//         if (response.ok) {
-//           const result = await response.json();
-//           const employeeData = result.data[0];
+        if (response.ok) {
+          const result = await response.json();
+          const employeeData = result.data[0];
 
-//           setUserData({
-//             name: employeeData.basicemployees?.firstName + " " + employeeData.basicemployees?.lastName,
-//             employeeCode: employeeData.basicemployees?.employeeCode,
-//           });
+          setUserData({
+            name: `${employeeData.basicemployees?.firstName} ${employeeData.basicemployees?.lastName}`,
+            employeeCode: employeeData.basicemployees?.employeeCode,
+          });
 
-//           setLoading(false);
-//         } else {
-//           console.error("Failed to fetch user data");
-//         }
-//       } catch (err) {
-//         console.error("Fetch Error:", err);
-//       }
-//     };
+          setLoading(false);
+        } else {
+          toast.error("Failed to fetch user data!");
+        }
+      } catch (err) {
+        toast.error("Error fetching data: " + err.message);
+      }
+    };
 
-//     fetchDashboardData();
-//   }, []);
+    fetchDashboardData();
+  }, []);
+
+  // Function to convert 12-hour time to 24-hour format
+  const convertTo24HourFormat = (timeString) => {
+    const [date, time] = timeString.split("T");
+    const [hours, minutes] = time.split(":");
+    let hour = parseInt(hours, 10);
+
+    // Check if the time is in PM and not 12:00 PM
+    if (timeString.includes("PM") && hour !== 12) {
+      hour += 12;
+    }
+
+    // Check if the time is in AM and 12:00 AM (midnight)
+    if (timeString.includes("AM") && hour === 12) {
+      hour = 0;
+    }
+
+    return `${date}T${String(hour).padStart(2, "0")}:${minutes}`;
+  };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "radio" ? value : value, // Handle radio button selection
-    }));
+    const { name, value, type } = e.target;
+
+    if (type === "datetime-local") {
+      // Convert the time to 24-hour format before updating the state
+      const formattedTime = convertTo24HourFormat(value);
+      setFormData((prev) => ({
+        ...prev,
+        [name]: formattedTime,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        isDayShift: name === "shift" ? value === "day" : prev.isDayShift,
+        isNightShift: name === "shift" ? value === "night" : prev.isNightShift,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -65,8 +97,11 @@ const AddEmployeeAttendance = () => {
 
     const requestData = {
       ...formData,
-      name: userData.name,
-      employeeCode: userData.employeeCode,
+      actualPunchInTime: formData.actualPunchInTime,
+      userpunchInTime: formData.userpunchInTime,
+      actualPunchOutTime: formData.actualPunchOutTime,
+      userPunchOutTime: formData.userPunchOutTime,
+      employeeCode: formData.PersonEmployeeCode,
       userName: userData.name,
       dataManipulatorEmployeeCode: userData.employeeCode,
     };
@@ -78,13 +113,29 @@ const AddEmployeeAttendance = () => {
         body: JSON.stringify(requestData),
       });
 
+      const result = await response.json();
+
       if (response.ok) {
-        alert("Attendance added successfully!");
+        toast.success("Attendance added successfully!");
+
+        // Clear form after successful submission
+        setFormData({
+          name: "",
+          PersonEmployeeCode: "",
+          actualPunchInTime: "",
+          userpunchInTime: "",
+          actualPunchOutTime: "",
+          userPunchOutTime: "",
+          deviceId: "",
+          isDayShift: true,
+          isNightShift: false,
+          shift: "day",
+        });
       } else {
-        console.error("Failed to add attendance");
+        toast.error(result.message || "Failed to add attendance!");
       }
     } catch (error) {
-      console.error("Error submitting attendance:", error);
+      toast.error("Error submitting attendance: " + error.message);
     }
   };
 
@@ -102,96 +153,45 @@ const AddEmployeeAttendance = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">Actual Punch In</label>
-                <input
-                  type="datetime-local"
-                  name="actualPunchInTime"
-                  value={formData.actualPunchInTime}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
+                <label className="block text-gray-700 text-sm font-medium mb-2">Employee Name</label>
+                <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">User Punch In</label>
-                <input
-                  type="datetime-local"
-                  name="userpunchInTime"
-                  value={formData.userpunchInTime}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
+                <label className="block text-gray-700 text-sm font-medium mb-2">Employee Code</label>
+                <input type="text" name="PersonEmployeeCode" value={formData.PersonEmployeeCode} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">Actual Punch Out</label>
-                <input
-                  type="datetime-local"
-                  name="actualPunchOutTime"
-                  value={formData.actualPunchOutTime}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">User Punch Out</label>
-                <input
-                  type="datetime-local"
-                  name="userPunchOutTime"
-                  value={formData.userPunchOutTime}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {["actualPunchInTime", "userpunchInTime", "actualPunchOutTime", "userPunchOutTime"].map((field, index) => (
+                <div key={index}>
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    {field.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase())}
+                  </label>
+                  <input type="datetime-local" name={field} value={formData[field]} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                </div>
+              ))}
             </div>
 
             <div>
               <label className="block text-gray-700 text-sm font-medium mb-2">Device ID</label>
-              <input
-                type="text"
-                name="deviceId"
-                value={formData.deviceId}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
+              <input type="text" name="deviceId" value={formData.deviceId} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
             </div>
 
             <div className="flex items-center space-x-6">
               <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="shift"
-                  value="day"
-                  checked={formData.shift === "day"}
-                  onChange={handleChange}
-                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
+                <input type="radio" name="shift" value="day" checked={formData.shift === "day"} onChange={handleChange} className="w-5 h-5 text-blue-600 border-gray-300 rounded" />
                 <span className="text-gray-700">Day Shift</span>
               </label>
 
               <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="shift"
-                  value="night"
-                  checked={formData.shift === "night"}
-                  onChange={handleChange}
-                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
+                <input type="radio" name="shift" value="night" checked={formData.shift === "night"} onChange={handleChange} className="w-5 h-5 text-blue-600 border-gray-300 rounded" />
                 <span className="text-gray-700">Night Shift</span>
               </label>
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-500 focus:outline-none"
-            >
+            <button type="submit" className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700">
               Submit Attendance
             </button>
           </form>
