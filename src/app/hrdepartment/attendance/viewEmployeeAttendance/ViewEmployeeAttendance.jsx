@@ -17,9 +17,6 @@ import {
   BarChart4,
 } from "lucide-react"
 import Layout from "@/layouts/Layout"
-import { Suspense } from "react"
-
-
 
 const ViewEmployeeAttendance = () => {
   const searchParams = useSearchParams()

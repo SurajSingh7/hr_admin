@@ -173,6 +173,24 @@ const ViewAllEmployeeAttendance = () => {
     // Fetch data for the new page
     fetchAttendanceData(filters, page);
   };
+  const handleLogsView = async(employeeCode, date) =>{
+    try{
+      if (!employeeCode || !date) return;
+      router.push(`/hrdepartment/attendance/viewEmployeeLogs?employeeCode=${employeeCode}&date=${encodeURIComponent(date)}`);
+    }
+    catch(error){
+      console.error(`An error occurred while redirecting to logs : ${error}`);
+    }
+  }
+  
+  const handleDelete = async(attendanceId) =>{
+    try{
+  
+    }
+    catch(error){
+        
+    }
+  }
 
   return (
 
@@ -395,15 +413,9 @@ const ViewAllEmployeeAttendance = () => {
                       <Filter className="h-5  w-5 " />
                       </button>
                     </div>
-
                 </div>
-
-             
-
-
             </div>
           
-
             {/* Attendance Table */}
             <div className="overflow-x-auto font-sans">
               <table className="min-w-full divide-y divide-gray-200 font-sans bg-gray">
@@ -498,7 +510,7 @@ const ViewAllEmployeeAttendance = () => {
                           {/* Dropdown Menu */}
                           {dropdownOpen === employee._id && (
                             <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-                              <div className="py-1">
+                              <div className="py-1 font-bold">
                                 <button
                                   onClick={() => {
                                     handleViewEmployee(employee.employeeCode, employee._id)
@@ -515,6 +527,24 @@ const ViewAllEmployeeAttendance = () => {
                                   className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >
                                   Edit
+                                </button>
+                                <button
+                                  onClick={()=>{
+                                    setDropdownOpen(null)
+                                    handleLogsView(employee.employeeCode,employee.userPunchOutTime )
+                                  }}
+                                  className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                  Logs
+                                </button>
+                                <button
+                                  onClick={()=>{
+                                    setDropdownOpen(null)
+                                    handleDelete(employee.employeeCode,employee._id)
+                                  }}
+                                  className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                  Soft Delete
                                 </button>
                               </div>
                             </div>

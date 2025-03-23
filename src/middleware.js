@@ -2,23 +2,24 @@ import { NextResponse } from 'next/server';
 import { cookies } from "next/headers";
 
 export async function middleware(req) {
-const { pathname } = req.nextUrl;
+  const { pathname } = req.nextUrl;
 
-const token = cookies(req).get("userSession");
-    const isPublicPath = pathname==='/'
+  const token = cookies(req).get("userSession");
+  const isPublicPath = pathname === '/'
 
-if(isPublicPath && token)
-    {
+  if (isPublicPath && token) {
     return NextResponse.redirect(new URL("/hrdepartment/staffview", req.url));
 
-    }
+  }
 
-    if(!isPublicPath && !token)
-        {
-        return NextResponse.redirect(new URL("/", req.url));
-    
-        }
+  if (!isPublicPath && !token) {
+    return NextResponse.redirect(new URL("/", req.url));
+
+  }
 }
 export const config = {
-  matcher: ['/', '/hrdepartment/staffview'], // Protect these routes
+  matcher: [
+    '/', '/hrdepartment/staffview', 
+    '/hrdepartment/:path*'
+  ], // Protect these routes
 };
