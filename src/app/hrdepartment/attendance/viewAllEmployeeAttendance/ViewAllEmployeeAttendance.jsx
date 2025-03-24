@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Calendar, Clock, Filter, RefreshCw, Search, User } from 'lucide-react';
 import Layout from "@/layouts/Layout";
+import toast from "react-hot-toast";
 
 const ViewAllEmployeeAttendance = () => {
   const searchParams = useSearchParams();
@@ -13,6 +14,7 @@ const ViewAllEmployeeAttendance = () => {
   const [loading, setLoading] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const toggleDropdown = (id) => {
     setDropdownOpen(dropdownOpen === id ? null : id);
@@ -95,31 +97,21 @@ const ViewAllEmployeeAttendance = () => {
 
   // Handle filter change
   const handleFilterChange = (e) => {
-    let { name, value } = e.target;
+    let { name, value, checked, type } = e.target;
 
     if (name === "shiftType") {
       value = value === "day" ? { isDayShift: "true" } : value === "night" ? { isNightShift: "true" } : {};
     }
 
+    if (type === "checkbox") {
+      value = checked ? "false" : "true";
+    }
+
+
     setFilters(prev => {
       const newFilters = { ...prev, [name]: value };
       setCurrentPage(1);
       debouncedFetch(newFilters, 1);
-      return newFilters;
-    });
-  };
-
-  // Handle search input change
-  const handleSearchInput = (e) => {
-    const { name, value } = e.target;
-    setInputValues(prev => ({ ...prev, [name]: value }));
-  };
-
-  // Handle search submit (on Enter key press)
-  const handleSearchSubmit = (field) => {
-    setFilters(prev => {
-      const newFilters = { ...prev, [field]: inputValues[field] };
-      fetchAttendanceData(newFilters, 1);
       return newFilters;
     });
   };
@@ -173,30 +165,72 @@ const ViewAllEmployeeAttendance = () => {
     // Fetch data for the new page
     fetchAttendanceData(filters, page);
   };
-  const handleLogsView = async(employeeCode, date) =>{
-    try{
+  const handleLogsView = async (employeeCode, date) => {
+    try {
       if (!employeeCode || !date) return;
       router.push(`/hrdepartment/attendance/viewEmployeeLogs?employeeCode=${employeeCode}&date=${encodeURIComponent(date)}`);
     }
-    catch(error){
+    catch (error) {
       console.error(`An error occurred while redirecting to logs : ${error}`);
     }
   }
-  
-  const handleDelete = async(attendanceId) =>{
-    try{
-  
+
+  const handleDelete = async (attendanceId) => {
+    const isConfirmed = window.confirm("Are you sure you want to delete this record?");
+    if (!isConfirmed) return;
+    try {
+      const authUrl = `${API_BASE_URL}/hrms/authdata`;
+      const authResponse = await fetch(authUrl, { method: "GET", credentials: "include" });
+
+      if (!authResponse.ok) {
+        throw new Error("Failed to fetch user data");
+      }
+
+      const authResult = await authResponse.json();
+      const employeeData = authResult.data[0];
+
+      if (!employeeData?.basicemployees) {
+        throw new Error("Invalid user data");
+      }
+
+      const firstName = employeeData.basicemployees.firstName || "";
+      const lastName = employeeData.basicemployees.lastName || "";
+      const userName = lastName ? `${firstName} ${lastName}`.trim() : firstName.trim();
+
+      const dataManipulatorEmployeeCode = employeeData.basicemployees.employeeCode;
+
+      const deleteUrl = `${process.env.NEXT_PUBLIC_ATTENDANCE_URL}user/attendance/soft-delete?id=${attendanceId}&userName=${encodeURIComponent(userName)}&dataManipulatorEmployeeCode=${encodeURIComponent(dataManipulatorEmployeeCode)}`;
+
+      const deleteResponse = await fetch(deleteUrl, { method: "PATCH", credentials: "include" });
+
+      if (!deleteResponse.ok) {
+        throw new Error("Failed to delete attendance record");
+      }
+
+      const deleteResult = await deleteResponse.json();
+      toast.success(deleteResult.message || "Attendance record deleted successfully!");
+      console.log("Record deleted successfully:", deleteResult);
+    } catch (error) {
+      toast.error('Error', error.message)
+      console.error("Error deleting attendance record:", error.message);
     }
-    catch(error){
-        
+  };
+
+  const handleEditEmployee = async (employeeCode, id) => {
+    try {
+      if (!employeeCode || !id) return;
+      router.push(`/hrdepartment/attendance/addAttendance?id=${id}&employeeCode=${employeeCode}`);
+    }
+    catch (error) {
+      consoke.log('error', error);
     }
   }
 
   return (
 
-   <Layout>
+    <Layout>
       <div className="flex  bg-gray-50">
-  
+
         {/* Sidebar Filters */}
         {sidebarVisible && (
           <div className="font-sans w-80 bg-white shadow-md overflow-y-auto h-full border-r border-gray-200 relative">
@@ -300,22 +334,6 @@ const ViewAllEmployeeAttendance = () => {
                   </select>
                 </div>
 
-                {/* Employee Information */}
-                {/* <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Employee Information</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      name="employeeCode"
-                      placeholder="Employee Code"
-                      value={filters.employeeCode}
-                      onChange={handleFilterChange}
-                      className="w-full pl-10 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                    />
-                  </div>
-                </div> */}
-
                 {/* Device ID */}
                 <div className="space-y-2">
                   <div className="relative">
@@ -355,6 +373,18 @@ const ViewAllEmployeeAttendance = () => {
                     />
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <div className="relative flex justify-between">
+                    <label className="text-sm font-medium text-gray-700">View Deleted Records</label>
+                    <input
+                      type="checkbox"
+                      name="status"
+                      checked={filters.status === "false"}
+                      onChange={handleFilterChange}
+                      className="w-5 h-5 border border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
 
                 {/* Filter Buttons */}
                 <div className="pt-4 space-y-3">
@@ -383,39 +413,39 @@ const ViewAllEmployeeAttendance = () => {
         <div className={`${sidebarVisible ? "flex-1" : "w-full"} overflow-auto p-6`}>
           <div className="bg-white rounded-lg shadow-md p-6 font-sans">
             <div className="flex justify-between">
-                
-                <div>
-                  <h1 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
-                      <Clock className="h-6 w-6 mr-2 text-indigo-600" />
-                      Employee Attendance
-                  </h1>
-                </div>
 
-                {/* Employee Search */}
-                <div className="space-y-2 flex justify-center items-center gap-4 ">
-                  <div className="relative ">
-                    <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      name="employeeCode"
-                      placeholder="Employee Code"
-                      value={filters.employeeCode}
-                      onChange={handleFilterChange}
-                      className="w-full pl-10 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                    />
-                  </div>
-                  <div className="">
-                      <button
-                      onClick={() => setSidebarVisible(!sidebarVisible)}
-                      className="  bg-indigo-600  mb-2 text-white p-2 rounded-r-md shadow-md  hover:bg-indigo-700 transition-colors"
-                      aria-label="Show filters"
-                      >
-                      <Filter className="h-5  w-5 " />
-                      </button>
-                    </div>
+              <div>
+                <h1 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+                  <Clock className="h-6 w-6 mr-2 text-indigo-600" />
+                  Employee Attendance
+                </h1>
+              </div>
+
+              {/* Employee Search */}
+              <div className="space-y-2 flex justify-center items-center gap-4 ">
+                <div className="relative ">
+                  <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    name="employeeCode"
+                    placeholder="Employee Code"
+                    value={filters.employeeCode}
+                    onChange={handleFilterChange}
+                    className="w-full pl-10 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                  />
                 </div>
+                <div className="">
+                  <button
+                    onClick={() => setSidebarVisible(!sidebarVisible)}
+                    className="  bg-indigo-600  mb-2 text-white p-2 rounded-r-md shadow-md  hover:bg-indigo-700 transition-colors"
+                    aria-label="Show filters"
+                  >
+                    <Filter className="h-5  w-5 " />
+                  </button>
+                </div>
+              </div>
             </div>
-          
+
             {/* Attendance Table */}
             <div className="overflow-x-auto font-sans">
               <table className="min-w-full divide-y divide-gray-200 font-sans bg-gray">
@@ -522,6 +552,7 @@ const ViewAllEmployeeAttendance = () => {
                                 </button>
                                 <button
                                   onClick={() => {
+                                    handleEditEmployee(employee.employeeCode, employee._id)
                                     setDropdownOpen(null)
                                   }}
                                   className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -529,21 +560,21 @@ const ViewAllEmployeeAttendance = () => {
                                   Edit
                                 </button>
                                 <button
-                                  onClick={()=>{
+                                  onClick={() => {
                                     setDropdownOpen(null)
-                                    handleLogsView(employee.employeeCode,employee.userPunchOutTime )
+                                    handleLogsView(employee.employeeCode, employee.userPunchOutTime)
                                   }}
                                   className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                  >
+                                >
                                   Logs
                                 </button>
                                 <button
-                                  onClick={()=>{
+                                  onClick={() => {
                                     setDropdownOpen(null)
-                                    handleDelete(employee.employeeCode,employee._id)
+                                    handleDelete(employee._id)
                                   }}
                                   className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                  >
+                                >
                                   Soft Delete
                                 </button>
                               </div>
@@ -697,8 +728,8 @@ const ViewAllEmployeeAttendance = () => {
           </div>
         </div>
       </div>
-   </Layout>
-   
+    </Layout>
+
   )
 }
 
